@@ -291,6 +291,7 @@ def build_pipeline(
             input_data,
             preprocess_script,
             evaluate_script,
+            model_approval_status,
             accuracy_condition_threshold,
             model_registry_package,
             max_parallel_training_jobs,
@@ -300,6 +301,7 @@ def build_pipeline(
     )
 
     return pipeline
+
 
 
 
