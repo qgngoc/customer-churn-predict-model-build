@@ -116,7 +116,7 @@ def build_pipeline(
     sklearn_processor = SKLearnProcessor(
         framework_version="0.23-1",
         role=role,
-        instance_type=processing_instance_type,
+        instance_type="ml.t3.medium",
         instance_count=1,
     )
 
