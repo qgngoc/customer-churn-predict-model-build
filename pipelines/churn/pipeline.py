@@ -64,8 +64,8 @@ def get_session_role_bucket(session: Optional[Session] = None):
 
 def upload_raw_data(session: Session, local_path: str, prefix: str = PREFIX) -> str:
     """Upload local data file to S3 and return its URI."""
-    uri = session.upload_data(path=local_path, key_prefix=f"{prefix}/data")
-    logger.info("Customer Churn data uploaded to: %s", uri)
+    uri = session.upload_data(path=local_path, key_prefix=f"{prefix}")
+    # logger.info("Customer Churn data uploaded to: %s", uri)
     return uri
 
 
@@ -82,17 +82,23 @@ def build_pipeline(
 
     region = session.boto_region_name
 
+    # Upload data and scripts to S3
+    input_data_uri = upload_raw_data(session, CUSTOMER_CHURN_DATA_LOCAL_PATH, prefix)
+    preprocess_script_uri = upload_raw_data(session, PREPROCESS_SCRIPT_LOCAL_PATH, prefix)
+    evaluate_script_uri = upload_raw_data(session, EVALUATE_SCRIPT_LOCAL_PATH, prefix)
+
+
     # Pipeline parameters
     model_registry_package = ParameterString(
         name="ModelGroup", default_value="customer-churn-predict-registry"
     )
 
     input_data = ParameterString(
-        name="InputData", default_value=f"s3://{bucket}/{prefix}/data/churn.csv"
+        name="InputData", default_value=input_data_uri
     )
 
     preprocess_script = ParameterString(
-        name="PreprocessScript", default_value=f"scripts/preprocess.py"
+        name="PreprocessScript", default_value=preprocess_script_uri
     )
 
     model_approval_status = ParameterString(
@@ -100,7 +106,7 @@ def build_pipeline(
     )
 
     evaluate_script = ParameterString(
-        name="EvaluateScript", default_value=f"scripts/evaluate.py"
+        name="EvaluateScript", default_value=evaluate_script_uri
     )
 
     max_training_jobs = ParameterInteger(name="MaxiumTrainingJobs", default_value=1)
@@ -158,7 +164,7 @@ def build_pipeline(
                 ),
             ),
         ],
-        code=PREPROCESS_SCRIPT_LOCAL_PATH,
+        code=preprocess_script_uri,
     )
 
     # Training and tuning
@@ -244,7 +250,7 @@ def build_pipeline(
                 ),
             )
         ],
-        code=EVALUATE_SCRIPT_LOCAL_PATH,
+        code=evaluate_script_uri,
         property_files=[evaluation_report],
     )
 
