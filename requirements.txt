@@ -1,0 +1,7 @@
+ipykernel
+matplotlib
+seaborn
+scikit-learn
+pandas
+sagemaker==2.245.0
+pytz~=2025.2

@@ -1,5 +1,5 @@
 
-
+import os
 import json
 import logging
 from typing import Optional
@@ -47,9 +47,17 @@ EVALUATE_SCRIPT_LOCAL_PATH = "pipelines/churn/scripts/evaluate.py"
 # ----- Helpers -----
 
 def get_session_role_bucket(session: Optional[Session] = None):
-    """Return a (session, role, bucket) tuple using the environment/session."""
     session = session or sagemaker.session.Session()
-    role = sagemaker.get_execution_role()
+
+    try:
+        role = sagemaker.get_execution_role()
+    except ValueError:
+        # Local execution
+        role = os.environ.get(
+            "SAGEMAKER_ROLE_ARN",
+            "arn:aws:iam::123456789012:role/SageMakerExecutionRole",
+        )
+
     bucket = session.default_bucket()
     return session, role, bucket
 
@@ -302,10 +310,6 @@ def build_pipeline(
 
     return pipeline
 
-
-
-
-
 def get_pipeline():
     session, role, bucket = get_session_role_bucket()
 
@@ -323,3 +327,13 @@ def get_pipeline():
     # pipeline.upsert(role_arn=role)
     # logger.info("Pipeline upserted: %s", pipeline.name)
 
+if __name__ == "__main__":
+    session, role, bucket = get_session_role_bucket()
+    logger.info("Successfully authorized with AWS")
+    logger.info("Session: %s", session)
+    logger.info("Role: %s", role)
+    logger.info("Bucket: %s", bucket)
+    pipeline = get_pipeline()
+    logger.info("Pipeline definition created successfully")
+    pipeline_definition = json.loads(pipeline.definition())
+    logger.info("Pipeline definition:\n%s", json.dumps(pipeline_definition, indent=2))
