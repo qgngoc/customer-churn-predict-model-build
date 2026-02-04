@@ -51,7 +51,7 @@ def get_session_role_bucket(session: Optional[Session] = None):
 
     try:
         role = sagemaker.get_execution_role()
-    except ValueError:
+    except ValueError as e:
         # Local execution
         role = os.environ.get(
             "SAGEMAKER_ROLE_ARN",

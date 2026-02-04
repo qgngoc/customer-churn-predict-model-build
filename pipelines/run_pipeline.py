@@ -82,7 +82,7 @@ def main():  # pragma: no cover
         all_tags = get_pipeline_custom_tags(args.module_name, args.kwargs, tags)
 
         upsert_response = pipeline.upsert(
-            role_arn=args.role_arn, description=args.description, tags=all_tags
+            role_arn=args.role_arn, description=args.description
         )
         print("\n###### Created/Updated SageMaker Pipeline: Response received:")
         print(upsert_response)
